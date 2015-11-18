@@ -2,7 +2,7 @@
 *.aux
 *.bbl
 *.blg
-#*.pdf
+*.pdf
 *.synctex.gz
 *.log
 *.brf
