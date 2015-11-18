@@ -1,0 +1,8 @@
+# Things Jon added
+*.aux
+*.bbl
+*.blg
+*.pdf
+*.synctex.gz
+*.log
+*.brf
