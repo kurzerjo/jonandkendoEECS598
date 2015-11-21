@@ -1,39 +1,87 @@
-clc, clear,
+clc, %clear,
 addpath('..\flowColorCode')
 
-im1 = imread('..\imagePairs\Army\frame10.png');
-im2 = imread('..\imagePairs\Army\frame11.png');
+im1 = double(imread('..\imagePairs\Army\frame10.png'));
+im2 = double(imread('..\imagePairs\Army\frame11.png'));
 %figure(1), clf
 %imshow(im1);
-if isinteger(im1);
-    im1_8 = double(im1);
-    im2_8 = double(im2);
-end
+
 %%
-images  = cat(length(size(im1))+1, im1_8, im2_8);
+images  = cat(length(size(im1))+1, im1, im2);
 size(images)
 for i = 1:size(images,3)
-    images(:,:,i,:)  = structure_texture_decomposition_rof( squeeze(images(:,:,i,:)));
+    images(:,:,i,:)  = structure_texture_decomposition_rof( ...
+                                            squeeze(images(:,:,i,:)));
 end
 %%
 size(images)
 tmp = images(:,:,:,1);
-%imshow(uint8(tmp))
-imshow(uint8(tmp))
+imshow(uint8(tmp),'InitialMagnification','fit')
+%imshow(uint8(im1))
 
-%%
+%% 
 pyramid_spacing = 2;
-pyramid_levels  =  1 + floor( log(min(size(images, 1), size(images,2))/16) / log(pyramid_spacing) );
+pyramid_levels  =  1 + floor( log(min(size(images, 1), ...
+                       size(images,2))/16) / log(pyramid_spacing) );
 
-% Construct image pyramid, using setting in Bruhn et al in  "Lucas/Kanade.." (IJCV2005') page 218
-
+% Construct image pyramid, using setting in Bruhn et al in  
+% "Lucas/Kanade.." (IJCV2005') page 218
 factor            = sqrt(2);  % sqrt(3)
-smooth_sigma      = sqrt(pyramid_spacing)/factor;   % or sqrt(3) recommended by Manuel Werlberger   
-f                 = fspecial('gaussian', 2*round(1.5*smooth_sigma) +1, smooth_sigma);    
+smooth_sigma      = sqrt(pyramid_spacing)/factor;
+f                 = fspecial('gaussian', ...
+                        2*round(1.5*smooth_sigma) +1, smooth_sigma);    
 
-pyramid_images    = compute_image_pyramid(images, f, pyramid_levels, 1/pyramid_spacing);
+pyramid_images    = compute_image_pyramid(images, f, pyramid_levels, ...
+                                        1/pyramid_spacing);
+uv = zeros(2,2, 2);
+options.images = pyramid_images;
+for l = length(pyramid_images):-1:1
+    tmp = vertcat(pyramid_images{l}(:,:,:,1),pyramid_images{l}(:,:,:,2));
+    imshow(uint8(tmp),'InitialMagnification','fit')
 
+    clc
+    disp(['Pyramid level: ', num2str(l)])
+    uv    =  resample_flow(uv, ...
+             [size(pyramid_images{l}, 1) size(pyramid_images{l}, 2)]);
+    
+%    small = this;    
+    % Run flow method on subsampled images
+    
+% Iterate flow computation
+  for i = 1:10     
+   
+    % Compute linear flow operator
+    [A, b, parm, iterative] = flow_operator(pyramid_images{l}, uv);
+    
+    x = reshape(A \ b, size(uv));
+%    [x, flag] = pcg(A, b, [], 100);  %100   
+    
+    % Print status information
+    disp(['--Iteration: ', num2str(i), '    (', num2str(norm(x(:))), ')'])
+    
+    % Terminate iteration early if flow doesn't change substantially
+    if (norm(x(:)) < 1E-3)
+      break
+    end
+   
+    x(x > 1)  = 1; x(x < -1) = -1; % limit update
+    
+    uv = uv + x;
+        
+    % Perform median filtering to remove outliers
+    median_filter_size = [5 5];
+    uv(:,:,1) = medfilt2(uv(:,:,1), median_filter_size, 'symmetric');
+    uv(:,:,2) = medfilt2(uv(:,:,2), median_filter_size, 'symmetric');
 
+  
+  end
+    tmp = vertcat(pyramid_images{l}(:,:,:,1),flowToColor(uv));
+    imshow(uint8(tmp),'InitialMagnification','fit')
+    pause(1)
+end
+%%
+tmp = vertcat(im1,flowToColor(uv));
+imshow(uint8(tmp),'InitialMagnification','fit')
 %%
 centerpoint = [495, 195];% for Army
 %centerpoint = [316, 53]; % for Teddy
@@ -41,10 +89,11 @@ centerpoint = [495, 195];% for Army
 winSize = 90;
 winRange = floor(centerpoint-winSize/2);
 winRange = [winRange, winRange+winSize-1];
-im1_w = im1(winRange(2):winRange(4),winRange(1):winRange(3),:);
-%imshow(im1_w);
 
-%%
+im1_w = im1(winRange(2):winRange(4),winRange(1):winRange(3),:);
+imshow(im1_w);
+
+
 im1_CLAB = rgb2lab(im1_w);
 ci = im1_CLAB(45,45,:);
 sigma_c_sq = 8^2;
@@ -55,12 +104,11 @@ for r = 1:size(im1_CLAB,1)
         cj = im1_CLAB(r,c,:);
         c_norm = (ci(2)-cj(2))^2+(ci(3)-cj(3))^2;
         p_norm = ((45-r)^2 + (45-c)^2);
-%        p_norm = 0;
         w(r,c) = exp(-c_norm/(2*sigma_c_sq)-p_norm/(2*sigma_x_sq));
     end
 end
 
-surf(w);
+imshow(w);
 
 %%
 clc, clear
