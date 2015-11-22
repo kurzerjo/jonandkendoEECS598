@@ -4,6 +4,8 @@
 \usepackage{times}
 \usepackage{epsfig}
 \usepackage{graphicx}
+\usepackage{epstopdf}
+%\DeclareGraphicsExtensions{.eps}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{lipsum}
@@ -105,8 +107,72 @@ University of Michigan\\
 
 %------------------------------------------------------------------------
 \section{Implementation}
-\lipsum
+\begin{equation}
+E(\textbf{u}) = E_D(\textbf{u}) + \lambda_l E_L(\textbf{u})
++ \lambda_n \underbrace{\sum_i \sum_{j>i} \omega_{ij} \rho_N(u_i-u_j)}_{E_N(\textbf{u})}
+\end{equation}
+\begin{equation}
+\omega_{ij} = k(\textbf{f}_i,\textbf{f}_i) = 
+\text{exp}\left(-\frac{||\textbf{p}_i-\textbf{p}_j||^2}{2 \sigma^2_x}
+- \frac{||\textbf{c}_i-\textbf{c}_j||^2}{2 \sigma^2_c}\right)
+\end{equation}
+\begin{equation}
+q_i = \sum_j A_{ij} p_j = p_i \sum_j k(\textbf{f}_i,\textbf{f}_j)
+- \sum_j k(\textbf{f}_i,\textbf{f}_j) p_j
+\end{equation}
+\begin{equation}
+\rho(x) \approx \mu_{\omega,\sigma}(x) = T - \sum^K_{n=1} \omega_n \text{ exp}\left(-\frac{x^2}{2\sigma^2_n}\right)
+\end{equation}
+\begin{figure}[t]
+\begin{center}
+   \includegraphics[width=.8\linewidth]{figs/structureDecomp.jpg}
+\end{center}
+   \caption{TODO TODO TODO TODO}
+\label{fig:structure}
+\end{figure}
 
+\begin{figure}[t]
+\begin{center}
+   \includegraphics[width=.8\linewidth]{figs/pyramids.jpg}
+\end{center}
+   \caption{TODO TODO TODO TODO}
+\label{fig:structure}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+   \includegraphics[width=.8\linewidth]{figs/nonLocalWieght.jpg}
+\end{center}
+   \caption{TODO TODO TODO TODO}
+\label{fig:structure}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+   \includegraphics[width=0.8\linewidth]{figs/penalty_l1Norm.eps}
+\end{center}
+   \caption{TODO TODO TODO TODO}
+\label{fig:structure}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+   \includegraphics[width=0.8\linewidth]{figs/penalty_Lorentzian.eps}
+\end{center}
+   \caption{TODO TODO TODO TODO}
+\label{fig:structure}
+\end{figure}
+
+\begin{figure}[t]
+\begin{center}
+   \includegraphics[width=0.8\linewidth]{figs/penalty_GenCharbonnier.eps}
+\end{center}
+   \caption{TODO TODO TODO TODO}
+\label{fig:structure}
+\end{figure}
+
+
+\lipsum
 
 {\small
 \bibliographystyle{ieee} 

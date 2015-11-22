@@ -20,6 +20,7 @@ imshow(uint8(tmp),'InitialMagnification','fit')
 %imshow(uint8(im1))
 
 %% 
+clc
 pyramid_spacing = 2;
 pyramid_levels  =  1 + floor( log(min(size(images, 1), ...
                        size(images,2))/16) / log(pyramid_spacing) );
@@ -39,7 +40,7 @@ for l = length(pyramid_images):-1:1
     tmp = vertcat(pyramid_images{l}(:,:,:,1),pyramid_images{l}(:,:,:,2));
     imshow(uint8(tmp),'InitialMagnification','fit')
 
-    clc
+%    clc
     disp(['Pyramid level: ', num2str(l)])
     uv    =  resample_flow(uv, ...
              [size(pyramid_images{l}, 1) size(pyramid_images{l}, 2)]);
@@ -48,22 +49,29 @@ for l = length(pyramid_images):-1:1
     % Run flow method on subsampled images
     
 % Iterate flow computation
-  for i = 1:10     
+  for i = 1:4    
    
     % Compute linear flow operator
     [A, b, parm, iterative] = flow_operator(pyramid_images{l}, uv);
     
-    x = reshape(A \ b, size(uv));
+    x = conjugate_gradient(pyramid_images{l}, uv, A, b, 20);
+    x = reshape(x, size(uv));
+%    x = reshape(A \ b, size(uv));
 %    [x, flag] = pcg(A, b, [], 100);  %100   
     
     % Print status information
-    disp(['--Iteration: ', num2str(i), '    (', num2str(norm(x(:))), ')'])
+    keepx = x;
+    normOfx = norm(x(:));
+    disp(['--Iteration: ', num2str(i), '    (', num2str(normOfx), ')'])
     
     % Terminate iteration early if flow doesn't change substantially
-    if (norm(x(:)) < 1E-3)
+    if (normOfx < 1E-3)
       break
     end
-   
+    if (normOfx ~= normOfx)
+      break
+    end
+    
     x(x > 1)  = 1; x(x < -1) = -1; % limit update
     
     uv = uv + x;

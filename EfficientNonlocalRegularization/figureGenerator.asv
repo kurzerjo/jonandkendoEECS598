@@ -77,8 +77,8 @@ ux = zeros(size(x));
 %px = abs(x);                    % L1 norm
 %px = (T/10)*log(1+(x.^2)/(2*1.5^2));   % Lorentzian
 %px = sqrt((x.^2 + (0.001)^2));  % Charbonnier
-px = (x.^2 + (0.001)^2).^.45;   % Generalized Charbonnier
-%px = sqrt(abs(x))*5 ;           % something else
+%px = (x.^2 + (0.001)^2).^.45;   % Generalized Charbonnier
+px = sqrt(abs(x))*5 ;           % something else
 
 px = min(px,T);    %L1 norm
 omega_n = [50 4];
